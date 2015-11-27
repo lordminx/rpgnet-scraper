@@ -1,6 +1,6 @@
 # rpgnet-scraper
 
-A script to download all your RPGnet posts for you.
+A script to download all your RPGnet posts for you. **Don't use this until I fix the memory footprint!**
 
 Usage:
     python scraper.py USERNAME PASSWORD

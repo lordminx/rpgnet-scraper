@@ -19,7 +19,7 @@ from time import sleep
 
 # SETUP
 forum = "http://forum.rpg.net/"
-b = RoboBrowser(user_agent="Firefox")
+b = RoboBrowser(user_agent="Firefox", history=False)
 now = datetime.now()
 
 searchbase = "search.php?do=finduser&userid={}&contenttype=vBForum_Post&showposts=1&searchdate={}&beforeafter=before"
