@@ -1,7 +1,7 @@
 """RPGnet Scraper.
 
 Usage:
-    scraper.py scrape USERNAME PASSWORD
+    scraper.py USERNAME PASSWORD
     scraper.py [options]
 
 Options:
@@ -14,6 +14,8 @@ import re
 from collections import defaultdict
 from dateutil.parser import parse
 from datetime import datetime
+from time import sleep
+
 
 # SETUP
 forum = "http://forum.rpg.net/"
@@ -51,6 +53,7 @@ def get_urls(searchurl, links=[]):
     """Recursively get posts links from searchurl."""
 
     b.open(searchurl)
+    assert b.response.status_code == 200
 
     # get links
     tags = b.select("li h3 a")
@@ -80,7 +83,7 @@ def get_post(postlink):
     """Download post and return id, link, date, title and message of post."""
 
     postid = idfromlink(postlink)
-    print("Downloading:", postlink)
+    print("Downloading post:", postid)
 
     b.open(postlink)
 
@@ -119,23 +122,22 @@ if __name__ == "__main__":
         # Build Search url
         search = forum + searchbase.format(userid, oldest)
 
+        print("Collecting links...")
         # get links
         links = get_urls(search)
 
-        print(len(links), "links")
-
         # get posts
-        results.extend( [ get_post(link) for link in links ] )
-
-        print(len(results))
-        print("----")
-        print(results[:5])
+        results.extend([get_post(link) for link in links])
 
         if is_last_search(search):
             break
         else:
             oldest = post_age(results[-1])
+            sleep(5)
 
-
-
-
+    print("Saving posts...")
+    with open("RPGnet-post-archive.pickle", "wb") as f:
+        dump(results)
+    print("{} posts saved.".len(results))
+    runtime = datetime.now() - now
+    print("Runtime: {} second".format(runtime.seconds))
