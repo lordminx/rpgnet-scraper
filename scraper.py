@@ -18,9 +18,11 @@ from time import sleep
 
 # SETUP
 forum = "http://forum.rpg.net/"
+searchbase = "search.php?do=finduser&userid={}&contenttype=vBForum_Post&showposts=1&searchdate={}&beforeafter=before"
+
+
 b = RoboBrowser(user_agent="Firefox", history=False)
 now = datetime.now()
-searchbase = "search.php?do=finduser&userid={}&contenttype=vBForum_Post&showposts=1&searchdate={}&beforeafter=before"
 
 
 conn = sqlite3.connect("post-archive.db", detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
@@ -68,6 +70,8 @@ def get_urls(searchurl, links=[]):
         nextlink = forum + b.find("a", rel="next")["href"]
         return get_urls(nextlink, links)
     else:
+        c.executemany("insert or ignore into posts (id, url) values (?,?)", [(idfromlink(x), x) for x in links])
+        conn.commit()
         return links
 
 
@@ -138,7 +142,7 @@ if __name__ == "__main__":
 
 
         # get posts
-        for link in links:
+        for link in links[-1:]:
             post = get_post(link)
             conn.execute("INSERT OR REPLACE INTO posts VALUES (?,?,?,?,?,?)", post)
             conn.commit()
@@ -154,3 +158,18 @@ if __name__ == "__main__":
             diff = now - oldest_date
             oldest = diff.days
             sleep(5)
+
+    """
+    Ugly work-around for mystery bug.
+
+    TODO
+    """
+
+    print("Link collection done.")
+    print("Starting post scrape...")
+    for x in c.execute("select url from posts").fetchall():
+        post = get_post(x[0])
+        conn.execute("insert or replace into posts values (?,?,?,?,?,?)", post)
+        conn.commit()
+
+    print("All posts saved.")
